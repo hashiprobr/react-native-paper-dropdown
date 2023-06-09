@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   LayoutChangeEvent,
   ScrollView,
@@ -5,6 +6,7 @@ import {
   TouchableWithoutFeedback,
   View,
   ViewStyle,
+  FlatList,
 } from "react-native";
 import {
   Checkbox,
@@ -13,6 +15,7 @@ import {
   TextInput,
   TouchableRipple,
   useTheme,
+  Text,
 } from "react-native-paper";
 import React, {
   ReactNode,
@@ -91,8 +94,8 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
       dropDownItemSelectedTextStyle,
       accessibilityLabel,
       disabled,
-      onFocus = () => { },
-      onBlur = () => { },
+      onFocus = () => {},
+      onBlur = () => {},
       style = {},
       editable,
       borderless,
@@ -111,6 +114,7 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
       iconColor,
       iconStyle,
     } = props;
+    const flatListRef = React.useRef<FlatList | null>(null);
     const [displayValue, setDisplayValue] = useState("");
     const [inputLayout, setInputLayout] = useState({
       height: 0,
@@ -134,6 +138,36 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
       setInputLayout(event.nativeEvent.layout);
     };
 
+    const findInitialIndex = () => {
+      let index: number = 0;
+      if (multiSelect) {
+        index = list.findIndex((_) => value.indexOf(_.value) !== -1);
+      } else {
+        index = list.findIndex((_) => _.value === value);
+      }
+      return index == -1 ? 0 : index;
+    };
+
+    useEffect(() => {
+      if (visible) {
+        let index: number = 0;
+        if (multiSelect) {
+          index = list.findIndex((_) => value.indexOf(_.value) !== -1);
+        } else {
+          index = list.findIndex((_) => _.value === value);
+        }
+
+        setTimeout(
+          () =>
+            flatListRef.current?.scrollToIndex({
+              index: index == -1 ? 0 : index,
+              animated: false,
+            }),
+          200
+        );
+      }
+    }, [visible]);
+
     useUpdate(() => {
       if (multiSelect) {
         const _labels = list
@@ -145,7 +179,7 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
         const _label = list.find((_) => _.value === value)?.label;
         if (_label) {
           setDisplayValue(_label);
-        }else{
+        } else {
           setDisplayValue("");
         }
       }
@@ -203,10 +237,10 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
             style={{
               ...touchableStyle,
               flexGrow: 1,
-              flexDirection: 'column',
-              flexWrap: 'nowrap',
-              justifyContent: 'flex-start',
-              alignItems: 'stretch',
+              flexDirection: "column",
+              flexWrap: "nowrap",
+              justifyContent: "flex-start",
+              alignItems: "stretch",
               margin: style.margin,
               marginTop: style.marginTop,
               marginRight: style.marginRight,
@@ -217,7 +251,7 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
               paddingRight: 0,
               paddingBottom: 0,
               paddingLeft: 0,
-              overflow: 'visible',
+              overflow: "visible",
             }}
             theme={theme}
           >
@@ -257,7 +291,7 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
                 style={{
                   ...style,
                   flexGrow: 1,
-                  alignSelf: 'stretch',
+                  alignSelf: "stretch",
                   margin: 0,
                   marginTop: 0,
                   marginRight: 0,
@@ -276,19 +310,15 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
           ...dropDownStyle,
         }}
       >
-        <ScrollView
-          bounces={false}
-          style={{
-            ...(dropDownContainerHeight
-              ? {
-                height: dropDownContainerHeight,
-              }
-              : {
-                maxHeight: dropDownContainerMaxHeight || 200,
-              }),
-          }}
-        >
-          {list.map((_item, _index) => (
+        <FlatList
+          ref={flatListRef}
+          data={list}
+          getItemLayout={(_, index) => ({
+            length: 45,
+            offset: 45 * index,
+            index,
+          })}
+          renderItem={({ item: _item, index: _index }) => (
             <Fragment key={_item.value}>
               <TouchableRipple
                 style={{
@@ -302,9 +332,20 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
                   }
                 }}
               >
-                <Fragment>
-                  <Menu.Item
-                    titleStyle={{
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      paddingTop: 6,
+                      minHeight: 45,
+                      paddingLeft: 16,
                       color: isActive(_item.value)
                         ? activeColor || (theme || activeTheme).colors.primary
                         : (theme || activeTheme).colors.text,
@@ -312,20 +353,9 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
                         ? dropDownItemSelectedTextStyle
                         : dropDownItemTextStyle),
                     }}
-                    title={_item.custom || _item.label}
-                    style={{
-                      flex: 1,
-                      maxWidth: inputLayout?.width,
-                      ...(isActive(_item.value)
-                        ? dropDownItemSelectedStyle
-                        : dropDownItemStyle),
-                    }} onPress={() => {
-                      setActive(_item.value);
-                      if (onDismiss) {
-                        onDismiss();
-                      }
-                    }}
-                  />
+                  >
+                    {_item.custom || _item.label}
+                  </Text>
                   {multiSelect && (
                     <Checkbox.Android
                       theme={{
@@ -335,12 +365,22 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
                       onPress={() => setActive(_item.value)}
                     />
                   )}
-                </Fragment>
+                </View>
               </TouchableRipple>
               <Divider />
             </Fragment>
-          ))}
-        </ScrollView>
+          )}
+          keyExtractor={(_item) => _item.value.toString()}
+          style={{
+            ...(dropDownContainerHeight
+              ? {
+                  height: dropDownContainerHeight,
+                }
+              : {
+                  maxHeight: dropDownContainerMaxHeight || 200,
+                }),
+          }}
+        />
       </Menu>
     );
   }
