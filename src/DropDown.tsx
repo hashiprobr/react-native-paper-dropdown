@@ -234,7 +234,7 @@ const DropDown = forwardRef<TouchableWithoutFeedback, DropDownPropsInterface>(
                 theme={theme}
                 right={
                   <TextInput.Icon
-                    name={visible ? "menu-up" : "menu-down"}
+                    icon={visible ? "menu-up" : "menu-down"}
                     disabled={disabled}
                     forceTextInputFocus={false}
                     color={iconColor}
