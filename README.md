@@ -1,6 +1,8 @@
 react-native-paper-dropdown
 ===========================
 
+[PROJECT DISCONTINUED]
+
 **A fork of [Fateh Farooqui](https://github.com/fateh999)'s
 [react-native-paper-dropdown](https://fateh999.github.io/react-native-paper-dropdown/#/)
 with additional configurability**
