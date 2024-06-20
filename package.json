@@ -1,6 +1,6 @@
 {
-  "name": "@hashiprobr/react-native-paper-dropdown",
-  "version": "1.0.11",
+  "name": "@fringecoding/react-native-paper-dropdown",
+  "version": "1.0.12",
   "description": "A fork of Fateh Farooqui's react-native-paper-dropdown with additional configurability",
   "keywords": [
     "JavaScript",
@@ -33,7 +33,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "npx --package typescript tsc"
   },
   "peerDependencies": {
     "@hashiprobr/react-use-mount-and-update": "*",
